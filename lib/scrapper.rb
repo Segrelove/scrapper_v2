@@ -7,6 +7,7 @@ require 'pp'
 require 'google_drive'
 require 'csv'
 require 'dotenv'
+require 'tty-prompt'
 
 
 
@@ -19,11 +20,12 @@ class Scrapper
     @@scrap_numbers = 0
 
 #Initialize de app with a name, and the time of the scrap is saved
-    def initialize(name)
-        @name = name
+    def initialize
+        prompt = TTY::Prompt.new
+        result = prompt.ask("What name do you want to give to your scrap?")
+        @name = result
         @time = Time.now
-        puts "Scrap lancé, voici son nom #{@name}"
-        puts "Lancer #{@name}.perform"
+        puts "Your scrap is : #{@name}"
         array = [@name, @time]
         @@scrap_numbers = @@scrap_numbers + 1
         @@scrap_names << array
@@ -125,8 +127,19 @@ class Scrapper
         get_townhall_urls
         get_townhall_names
         get_townhall_emails
-        # save_as_spreadsheet
-        save_as_JSON
-        save_as_csv
+
+#Prompt just promt a choice for the user
+        prompt = TTY::Prompt.new
+        result = prompt.select("Do you want to downlad as...", %w(CSV JSON Spreadsheet))
+        if result == "CSV"
+            puts "You've choosen CSV, your file is in scrapper_v2/db as #{@name}.csv"
+            save_as_csv
+        elsif result == "JSON"
+            puts "You've choosen JSON, your file is in scrapper_v2/db as #{@name}.json"
+            save_as_JSON
+        else
+            puts "Sorry, Using speadsheet require a key..."
+            exit
+        end
     end
 end
